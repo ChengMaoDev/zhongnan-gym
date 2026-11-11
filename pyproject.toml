@@ -1,0 +1,33 @@
+[project]
+name = "zhongnan-tray"
+version = "0.1.0"
+description = "终南健身人数、30 天本地记录与今日预测"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+    "PySide6-Essentials>=6.10,<6.12",
+    "mcp>=2.3,<3",
+    "numpy>=2.2,<3",
+    "tzdata>=2026.1",
+    "uvicorn>=0.35,<1",
+]
+
+[project.scripts]
+zhongnan-tray = "zhongnan_tray.app:main"
+
+[dependency-groups]
+dev = ["basedpyright>=1.31", "ruff>=0.14", "pyinstaller>=6.16", "pytest>=8.4"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.basedpyright]
+typeCheckingMode = "strict"
+include = ["src", "tests", "scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test-*.py"]

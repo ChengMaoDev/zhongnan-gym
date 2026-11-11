@@ -1,0 +1,13 @@
+<!-- Answers refer to the isolated fixture in test-mcp.py, never live gym data. -->
+<evaluation>
+  <qa_pair><question>在验收样本中，当前在场人数是多少？</question><answer>81</answer></qa_pair>
+  <qa_pair><question>验收样本连续两次相同人数，在历史接口中保存为几个变化段？</question><answer>1</answer></qa_pair>
+  <qa_pair><question>读取当前人数与当日汇总，当日最高人数是多少？</question><answer>81</answer></qa_pair>
+  <qa_pair><question>验收样本当天已观测覆盖多少个分钟？</question><answer>2</answer></qa_pair>
+  <qa_pair><question>读取模型状态，最低几个有效训练日即可开始预测？</question><answer>1</answer></qa_pair>
+  <qa_pair><question>模型区分哪些每周日期类别？</question><answer>周一至周日，工作日与周末</answer></qa_pair>
+  <qa_pair><question>验收样本的未来预测有多少个有效点？</question><answer>29</answer></qa_pair>
+  <qa_pair><question>验收样本第一个未来预测点的人数是多少？</question><answer>71</answer></qa_pair>
+  <qa_pair><question>验收样本最空闲的60分钟预测窗口，平均人数是多少？</question><answer>76.5</answer></qa_pair>
+  <qa_pair><question>预测生成已超过10分钟时，接口应向agent返回多少个可用预测点？</question><answer>0</answer></qa_pair>
+</evaluation>
