@@ -10,7 +10,7 @@ from PySide6.QtCore import QObject, QTimer, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QApplication
 
-from .download import Update, download, latest
+from .download import NoRelease, Update, download, latest
 from .install import install_update
 from .release import VERSION
 
@@ -21,6 +21,7 @@ class Events(QObject):
     status = Signal(str)
     ready = Signal(object)
     failed = Signal(str)
+    no_release = Signal()
     finished = Signal()
 
 
@@ -41,6 +42,8 @@ class UpdateThread(threading.Thread):
                     update, self.directory, self.cancelled.is_set, self.progress
                 )
                 self.events.ready.emit((update, path))
+        except NoRelease:
+            self.events.no_release.emit()
         except (OSError, ValueError, RuntimeError) as error:
             LOG.exception("检查或下载更新失败")
             self.events.failed.emit(str(error))
@@ -65,6 +68,7 @@ class Updater(QObject):
         _ = self.events.status.connect(self.action.setText)
         _ = self.events.ready.connect(self.ready)
         _ = self.events.failed.connect(self.failed)
+        _ = self.events.no_release.connect(self.no_release)
         _ = self.events.finished.connect(self.finished)
         self.timer = QTimer(self)
         self.timer.setInterval(6 * 3600 * 1000)
@@ -82,6 +86,7 @@ class Updater(QObject):
 
     def ready(self, value: object) -> None:
         self.action.setEnabled(True)
+        self.action.setToolTip("")
         if value is None:
             self.pending = None
             self.action.setText(f"v{VERSION} · 已是最新，点击检查")
@@ -96,6 +101,11 @@ class Updater(QObject):
         self.action.setEnabled(True)
         self.action.setText("检查更新失败，点击重试")
         self.action.setToolTip(message)
+
+    def no_release(self) -> None:
+        self.action.setEnabled(True)
+        self.action.setToolTip("")
+        self.action.setText(f"v{VERSION} · 暂无发布版本")
 
     def finished(self) -> None:
         self.worker = None

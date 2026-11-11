@@ -6,6 +6,7 @@ import urllib.response
 import zipfile
 from email.message import Message
 from pathlib import Path
+from urllib.error import HTTPError
 
 import pytest
 
@@ -110,3 +111,17 @@ def test_mac_install_script_has_valid_shell_syntax() -> None:
     if sys.platform == "win32":
         return
     _ = subprocess.run(["/bin/sh", "-n"], input=MAC_HELPER, text=True, check=True)
+
+
+def test_absence_of_first_release_is_reported_as_no_release(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def not_found(*args: object, **kwargs: object) -> None:
+        del args, kwargs
+        raise HTTPError(
+            "https://api.github.com/test", 404, "Not Found", Message(), None
+        )
+
+    monkeypatch.setattr(download.urllib.request, "urlopen", not_found)
+    with pytest.raises(download.NoRelease):
+        _ = download.latest()

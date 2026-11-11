@@ -9,6 +9,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
+from urllib.error import HTTPError
 from urllib.parse import urlparse
 
 from pydantic import BaseModel
@@ -16,6 +17,10 @@ from pydantic import BaseModel
 from .release import LATEST_URL, REPOSITORY, VERSION
 
 MAX_SIZE = 350 * 1024 * 1024
+
+
+class NoRelease(LookupError):
+    """The repository has no stable release yet."""
 
 
 class ReleaseAsset(BaseModel):
@@ -97,8 +102,13 @@ def latest(current: str = VERSION, name: str | None = None) -> Update | None:
             "X-GitHub-Api-Version": "2022-11-28",
         },
     )
-    with urllib.request.urlopen(request, timeout=15) as response:
-        payload = cast(bytes, response.read(1024 * 1024))
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            payload = cast(bytes, response.read(1024 * 1024))
+    except HTTPError as error:
+        if error.code == 404:
+            raise NoRelease("暂无发布版本") from error
+        raise
     return parse_release(payload, current, name or asset_name())
 
 

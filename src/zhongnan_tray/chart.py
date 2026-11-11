@@ -12,6 +12,20 @@ from .theme import theme
 from .trace import smooth
 
 
+def line_path(
+    points: tuple[tuple[int, QPointF], ...], max_gap: int | None
+) -> QPainterPath:
+    path = QPainterPath()
+    previous: int | None = None
+    for timestamp, point in points:
+        if previous is None or (max_gap is not None and timestamp - previous > max_gap):
+            path.moveTo(point)
+        else:
+            path.lineTo(point)
+        previous = timestamp
+    return path
+
+
 class Chart(QWidget):
     def __init__(self) -> None:
         super().__init__()
@@ -83,19 +97,13 @@ class Chart(QWidget):
                     Qt.PenJoinStyle.RoundJoin,
                 )
             )
-            path = QPainterPath()
-            last = 0
-            for stamp, value in points:
-                point = self._point(stamp, value, area, maximum)
-                if not last or stamp - last > 180:
-                    if dashed and last and stamp - last <= 300:
-                        path.lineTo(point)
-                    else:
-                        path.moveTo(point)
-                else:
-                    path.lineTo(point)
-                painter.drawEllipse(point, 1.3, 1.3) if len(points) == 1 else None
-                last = stamp
+            projected = tuple(
+                (stamp, self._point(stamp, value, area, maximum))
+                for stamp, value in points
+            )
+            path = line_path(projected, 300 if dashed else None)
+            if len(projected) == 1:
+                painter.drawEllipse(projected[0][1], 1.3, 1.3)
             painter.drawPath(path)
         if self.samples:
             latest = self.samples[-1]
